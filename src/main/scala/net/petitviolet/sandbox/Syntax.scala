@@ -22,6 +22,26 @@ object Syntax:
   given Adder[Number] = new Adder[Number]:
     override def add(a: Number, b: Number): Number = a + b
 
+  opaque type UserId = Long
+  object UserId:
+    def apply(id: Long): UserId = id
+
+  opaque type UserEmail = String
+  object UserEmail:
+    def apply(email: String): UserEmail = email
+
+  type UserIdentifier = UserId | UserEmail
+  case class User(id: UserId, email: UserEmail)
+  object User:
+    val users: Seq[User] =
+      User(1, "alice@example.com") :: User(2, "bob@example.com") :: Nil
+
+    def find(identifier: UserIdentifier): Option[User] =
+      val f: User => Boolean = identifier match
+        case id: UserId       => { _.id == id }
+        case email: UserEmail => { _.email == email }
+      users.find(f)
+  end User
 end Syntax // only `end` works
 
 enum Currency(val quantity: Double) {
@@ -59,8 +79,12 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   }
 
   {
+    println(User.find(UserId(1)))
+    println(User.find(UserEmail("bob@example.com")))
+  }
+
+  {
     val c: Currency = Currency.Yen(100)
     given Adder[Currency] = currencyAdder
     println(c.add(Currency.Dollar(200)))
   }
-
