@@ -49,11 +49,11 @@ enum Currency(val quantity: Double) {
   case Dollar(q: Double) extends Currency(q)
 
   def yen: Currency = this match {
-    case y: Yen => y
+    case y: Yen    => y
     case Dollar(d) => Yen(d * 110.69)
   }
   def dollar: Currency = this match {
-    case Yen(q) => Dollar(q / 110.69)
+    case Yen(q)    => Dollar(q / 110.69)
     case d: Dollar => d
   }
 }
@@ -61,8 +61,10 @@ enum Currency(val quantity: Double) {
 val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   override def add(a: Currency, b: Currency): Currency = (a, b) match {
     case (Currency.Yen(a), Currency.Yen(b)) => Currency.Yen(a + b)
-    case (Currency.Yen(a), b: Currency.Dollar) => Currency.Yen(a + b.yen.quantity)
-    case (Currency.Dollar(a), b: Currency.Yen) => Currency.Yen(a + b.dollar.quantity)
+    case (Currency.Yen(a), b: Currency.Dollar) =>
+      Currency.Yen(a + b.yen.quantity)
+    case (Currency.Dollar(a), b: Currency.Yen) =>
+      Currency.Yen(a + b.dollar.quantity)
     case (Currency.Dollar(a), Currency.Dollar(b)) => Currency.Dollar(a + b)
   }
 
