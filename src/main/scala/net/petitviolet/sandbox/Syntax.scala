@@ -4,9 +4,6 @@ object Syntax:
   trait Adder[T]:
     def add(a: T, b: T): T
 
-  trait Multiplier[T]:
-    def multiply(a: T, b: T): T
-
   opaque type Number = Int
   object Number:
     def apply(i: Int): Number = i
