@@ -1,6 +1,11 @@
 package net.petitviolet.sandbox
 
 object Syntax:
+
+  class MyValue(value: Int) {
+    def isOdd: Boolean = value % 2 != 0
+  }
+
   trait Adder[T]:
     def add(a: T, b: T): T
 
@@ -43,6 +48,11 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
 
 @main def main: Unit =
   import Syntax._
+  {
+    val v = MyValue(100) // `new` not required
+    println(if v.isOdd then "odd" else "even") // `then` w/o `()`
+  }
+
   {
     val n: Number = Number(100)
     println(n.add(Number(200)))
