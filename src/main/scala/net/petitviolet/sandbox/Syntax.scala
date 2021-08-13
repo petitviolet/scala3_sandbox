@@ -42,6 +42,14 @@ object Syntax:
         case email: UserEmail => { _.email == email }
       users.find(f)
   end User
+
+  trait HasWidth:
+    def width: Double
+
+  trait HasHeight:
+    def height: Double
+
+  def area(x: HasWidth & HasHeight) = x.width * x.height
 end Syntax // only `end` works
 
 enum Currency(val quantity: Double) {
@@ -78,6 +86,11 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   {
     val n: Number = Number(100)
     println(n.add(Number(200)))
+  }
+
+  {
+    case class Rectangle(width: Double, height: Double) extends HasHeight, HasWidth
+    println(area(Rectangle(10, 20)))
   }
 
   {
