@@ -89,7 +89,9 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   }
 
   {
-    case class Rectangle(width: Double, height: Double) extends HasHeight, HasWidth
+    case class Rectangle(width: Double, height: Double)
+        extends HasHeight,
+          HasWidth
     println(area(Rectangle(10, 20)))
   }
 
