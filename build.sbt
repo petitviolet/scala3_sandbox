@@ -20,3 +20,23 @@ lazy val `syntax` = project.in(file("syntax"))
   .settings(
     commonSettings("syntax")
   )
+
+val AkkaVersion = "2.6.15"
+val AkkaHttpVersion = "10.2.6"
+val circeVersion = "0.14.1"
+
+val circeDependencies = Seq(
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+)
+
+lazy val `webapp-akka` = project.in(file("webapp_akka"))
+  .settings(
+    commonSettings("webapp-akka"),
+    libraryDependencies ++= circeDependencies ++ Seq(
+      "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
+    ).map(_.cross(CrossVersion.for3Use2_13))
+  )
