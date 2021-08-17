@@ -48,7 +48,8 @@ trait Service {
   val logger: LoggingAdapter
 
   given Decoder[Message] = io.circe.generic.semiauto.deriveDecoder
-  given jsonUnmarshaller[T]: (Decoder[T] ?=> Unmarshaller[HttpEntity, T]) =
+  type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> Unmarshaller[HttpEntity, T])
+  given jsonUnmarshaller[T]: JsonUnmarshaller[T] =
     Unmarshaller.byteStringUnmarshaller.map { (bs: ByteString) =>
       jawn
         .parseByteBuffer(bs.asByteBuffer)
