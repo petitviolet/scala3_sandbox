@@ -76,19 +76,20 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
     case (Currency.Dollar(a), Currency.Dollar(b)) => Currency.Dollar(a + b)
   }
 
-@main def main: Unit =
-  import Syntax._
+@main def main: Unit = {
   {
-    val v = MyValue(100) // `new` not required
+    val v = Syntax.MyValue(100) // `new` not required
     println(if v.isOdd then "odd" else "even") // `then` w/o `()`
   }
 
   {
+    import Syntax.{Number, given} // import given values
     val n: Number = Number(100)
     println(n.add(Number(200)))
   }
 
   {
+    import Syntax._
     case class Rectangle(width: Double, height: Double)
         extends HasHeight,
           HasWidth
@@ -96,12 +97,14 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   }
 
   {
+    import Syntax._
     println(User.find(UserId(1)))
     println(User.find(UserEmail("bob@example.com")))
   }
 
   {
+    import Syntax.{add, Adder}
     val c: Currency = Currency.Yen(100)
     given Adder[Currency] = currencyAdder
-    println(c.add(Currency.Dollar(200)))
   }
+}
