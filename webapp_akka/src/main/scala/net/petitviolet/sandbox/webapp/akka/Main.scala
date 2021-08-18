@@ -49,7 +49,7 @@ trait Service {
 
   given Decoder[Message] = io.circe.generic.semiauto.deriveDecoder
   type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> Unmarshaller[HttpEntity, T])
-  given jsonUnmarshaller[T]: JsonUnmarshaller[T] =
+  given [T]: JsonUnmarshaller[T] =
     Unmarshaller.byteStringUnmarshaller.map { (bs: ByteString) =>
       jawn
         .parseByteBuffer(bs.asByteBuffer)
