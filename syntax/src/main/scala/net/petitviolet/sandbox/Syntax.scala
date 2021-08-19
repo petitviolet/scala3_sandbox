@@ -32,6 +32,17 @@ object Syntax:
 
   type UserIdentifier = UserId | UserEmail
   case class User(id: UserId, email: UserEmail)
+
+  // [error] .../Syntax.scala:37: error: ] expected but identifier found
+  // [error]   given Conversion[Long | String, UserIdentifier] with
+  // given Conversion[Long | String, UserIdentifier] with
+  type IdLike = Long | String
+  given Conversion[IdLike, UserIdentifier] with
+    def apply(idLike: Long | String): UserIdentifier = idLike match {
+      case id: Long      => UserId(id)
+      case email: String => UserEmail(email)
+    }
+
   object User:
     val users: Seq[User] =
       User(1, "alice@example.com") :: User(2, "bob@example.com") :: Nil
@@ -97,9 +108,13 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
   }
 
   {
-    import Syntax._
+    import Syntax.{User, UserEmail, UserId}
     println(User.find(UserId(1)))
     println(User.find(UserEmail("bob@example.com")))
+
+    import Syntax.given_Conversion_IdLike_UserIdentifier
+    import scala.language.implicitConversions
+    println(User.find(2L))
   }
 
   {
