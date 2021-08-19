@@ -26,9 +26,9 @@ import scala.util.chaining.scalaUtilChainingOps
 import java.io.IOException
 import scala.concurrent.{ExecutionContext, Future}
 
-object AkkaHttpWebApp extends App with Service {
-  implicit override val system: ActorSystem = ActorSystem()
-  implicit override val executor = system.dispatcher
+object AkkaHttpWebApp extends App with Service:
+  given system: ActorSystem = ActorSystem()
+  given executionContext: ExecutionContext = system.dispatcher
 
   override val config = ConfigFactory.load()
   override val logger = Logging(system, "AkkaHttpWebApp")
@@ -36,13 +36,13 @@ object AkkaHttpWebApp extends App with Service {
   Http()
     .newServerAt(config.getString("http.interface"), config.getInt("http.port"))
     .bindFlow(routes)
-}
+end AkkaHttpWebApp
 
 case class Message(text: String)
 
-trait Service {
-  implicit val system: ActorSystem
-  implicit def executor: ExecutionContext
+trait Service:
+  given system: ActorSystem
+  given executionContext: ExecutionContext
 
   def config: Config
   val logger: LoggingAdapter
@@ -71,4 +71,4 @@ trait Service {
         }
     }
   }
-}
+end Service
