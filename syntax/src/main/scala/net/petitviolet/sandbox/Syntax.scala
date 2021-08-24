@@ -61,6 +61,29 @@ object Syntax:
     def height: Double
 
   def area(x: HasWidth & HasHeight) = x.width * x.height
+
+  object DependentType:
+    trait Value {
+      type Input
+      type Output
+      def input: Input
+    }
+    object Value {
+      // scalafmt `raises Search state exploded on` error...
+      type Type = [I] =>> [O] =>> Value { type Input = I; type Output = O }
+      def of[I, O](i: I): Type[I][O] = new Value {
+        type Input = I
+        type Output = O
+        val input = i
+      }
+    }
+
+    trait Processor[V <: Value] {
+      val value: V
+      def process(input: value.Input): value.Output
+      def processValue(v: V): v.Output
+    }
+
 end Syntax // only `end` works
 
 enum Currency(val quantity: Double) {
@@ -121,5 +144,17 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
     import Syntax.{add, Adder}
     val c: Currency = Currency.Yen(100)
     given Adder[Currency] = currencyAdder
+  }
+
+  {
+    import Syntax.DependentType._
+    val intValue: Value.Type[Int][String] = Value.of[Int, String](100)
+    val intProcessor = new Processor[Value.Type[Int][String]] {
+      override val value = intValue
+      override def process(input: value.Input): value.Output = s"processed: ${input}"
+      override def processValue(v: Value.Type[Int][String]): v.Output = s"processedValue: ${v.input}"
+    }
+    println(intProcessor.process(intValue.input))
+    println(intProcessor.processValue(intValue))
   }
 }
