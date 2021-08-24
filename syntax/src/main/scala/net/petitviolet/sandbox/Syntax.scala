@@ -13,7 +13,9 @@ object Syntax:
   object Number:
     def apply(i: Int): Number = i
 
+  // inject a method to all of A instances only if A has an Adder[A] instance
   extension [A](a: A)
+    // contextual function
     def add(b: A): Adder[A] ?=> A = {
       // implicitly[T]
       summon[Adder[A]].add(a, b)
@@ -23,6 +25,7 @@ object Syntax:
     override def add(a: Number, b: Number): Number = a + b
 
   opaque type UserId = Long
+  // to instantiate an opaque type it seems to need constructor
   object UserId:
     def apply(id: Long): UserId = id
 
@@ -30,6 +33,7 @@ object Syntax:
   object UserEmail:
     def apply(email: String): UserEmail = email
 
+  // union type
   type UserIdentifier = UserId | UserEmail
   case class User(id: UserId, email: UserEmail)
 
@@ -37,6 +41,7 @@ object Syntax:
   // [error]   given Conversion[Long | String, UserIdentifier] with
   // given Conversion[Long | String, UserIdentifier] with
   type IdLike = Long | String
+  // implicit type conversion
   given Conversion[IdLike, UserIdentifier] with
     def apply(idLike: Long | String): UserIdentifier = idLike match {
       case id: Long      => UserId(id)
@@ -60,6 +65,7 @@ object Syntax:
   trait HasHeight:
     def height: Double
 
+  // intersection type
   def area(x: HasWidth & HasHeight) = x.width * x.height
 
   object DependentType:
