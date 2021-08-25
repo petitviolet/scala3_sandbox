@@ -47,6 +47,8 @@ trait Service:
   def config: Config
   val logger: LoggingAdapter
 
+  // raise `Compiler bug: `constValue` was not evaluated by the compiler`
+  // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
   given Decoder[Message] = io.circe.generic.semiauto.deriveDecoder
   type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> Unmarshaller[HttpEntity, T])
   given [T]: JsonUnmarshaller[T] =
