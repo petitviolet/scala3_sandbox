@@ -163,4 +163,12 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
     println(intProcessor.process(intValue.input))
     println(intProcessor.processValue(intValue))
   }
+
+  {
+    Macro.timeLogging {
+      println("hello")
+      Thread.sleep(100)
+      println("world!")
+    }
+  }
 }
