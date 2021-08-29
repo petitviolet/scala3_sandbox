@@ -37,6 +37,12 @@ val circeDependencies = Seq(
   "io.circe" %% "circe-generic" % circeVersion,
 )
 
+val sangriaVersion = "2.1.3"
+val sangriaDependencies = Seq(
+  ("org.sangria-graphql" %% "sangria" % sangriaVersion).cross(CrossVersion.for3Use2_13),
+  "org.sangria-graphql" %% "sangria-circe" % "1.3.2"
+)
+
 lazy val `webapp-akka` = project.in(file("webapp_akka"))
   .settings(
     commonSettings("webapp-akka"),
@@ -44,5 +50,5 @@ lazy val `webapp-akka` = project.in(file("webapp_akka"))
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
       "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
-    ).map(_.cross(CrossVersion.for3Use2_13))
+    ).map(_.cross(CrossVersion.for3Use2_13)) ++ sangriaDependencies
   )
