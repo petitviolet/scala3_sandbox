@@ -24,7 +24,10 @@ lazy val `scala3-sandbox` = project
 
 lazy val `syntax` = project.in(file("syntax"))
   .settings(
-    commonSettings("syntax")
+    commonSettings("syntax"),
+    libraryDependencies ++= Seq(
+      ("org.scalameta" %% "scalameta" % "4.4.27").cross(CrossVersion.for3Use2_13)
+    )
   )
 
 val AkkaVersion = "2.6.15"
