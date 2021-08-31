@@ -1,4 +1,5 @@
 package net.petitviolet.sandbox
+import scala.annotation.targetName
 
 object Syntax:
 
@@ -9,9 +10,17 @@ object Syntax:
   trait Adder[T]:
     def add(a: T, b: T): T
 
+  opaque type AnotherNumber = Int
+  object AnotherNumber:
+    def apply(i: Int): AnotherNumber = i
+  extension (n: AnotherNumber)
+    @targetName("n_AnotherNumber") def value: Int = n
+
   opaque type Number = Int
   object Number:
     def apply(i: Int): Number = i
+  extension (n: Number)
+    @targetName("n_Number") def value: Int = n
 
   // inject a method to all of A instances only if A has an Adder[A] instance
   extension [A](a: A)
