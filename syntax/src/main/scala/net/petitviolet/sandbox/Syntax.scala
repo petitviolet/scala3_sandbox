@@ -13,6 +13,19 @@ object Syntax:
   opaque type AnotherNumber = Int
   object AnotherNumber:
     def apply(i: Int): AnotherNumber = i
+
+  /**
+   * Added @targetName annotation to suppress the following error message
+   * [error] 23 |    def value: Int = n
+   * [error]    |        ^
+   * [error]    |Double definition:
+   * [error]    |def value(n: net.petitviolet.sandbox.Syntax.AnotherNumber): Int in object Syntax at line 17 and
+   * [error]    |def value(n: net.petitviolet.sandbox.Syntax.Number): Int in object Syntax at line 23
+   * [error]    |have the same type after erasure.
+   * [error]    |
+   * [error]    |Consider adding a @targetName annotation to one of the conflicting definitions
+   * [error]    |for disambiguation.
+   */
   extension (n: AnotherNumber)
     @targetName("n_AnotherNumber") def value: Int = n
 
