@@ -58,10 +58,12 @@ opaque type ColumnId = String
 object ColumnId:
   def apply(id: String): ColumnId = id
   def generate = apply(UUID.randomUUID().toString)
+extension (a: ColumnId) @targetName("a_ColumnId") def value: String = a
 
 opaque type ColumnName = String
 object ColumnName:
   def apply(name: String): ColumnName = name
+extension (a: ColumnName) @targetName("a_ColumnName") def value: String = a
 
 enum ColumnType {
   case Int, Long, Varchar
