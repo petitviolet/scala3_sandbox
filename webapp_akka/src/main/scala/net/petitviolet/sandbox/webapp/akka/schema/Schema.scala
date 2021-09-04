@@ -10,6 +10,8 @@ import scala.util.Try
 
 object Schema {
   case class Context(executionContext: ExecutionContext)
+  def build(query: Query, mutation: Mutation): Schema[Context, Unit] =
+    sangria.schema.Schema(query.schema, None)
 
   extension [T](ctx: SangriaContext[Context, T])
     def ec: ExecutionContext = ctx.ctx.executionContext
@@ -131,5 +133,7 @@ object Schema {
       )
     }
   end Query
+
+  class Mutation() {}
 
 }
