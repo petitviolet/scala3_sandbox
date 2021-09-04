@@ -5,6 +5,55 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.annotation.targetName
 
+object TestData:
+  val databases: Seq[Database] = Database.create(DatabaseName("db-1")) ::
+    Database.create(DatabaseName("db-2")) ::
+    Database.create(DatabaseName("db-3")) :: Nil
+
+  val tables: Seq[Table] = databases.zipWithIndex.flatMap { (database, i) =>
+    (0.to(scala.util.Random.nextInt(5))).map { j =>
+      Table.create(database.id, TableName(s"table-${i}-${j}"))
+    }
+  }
+
+  val columns: Seq[Column] = tables.zipWithIndex.flatMap { (table, i) =>
+    (0.to(scala.util.Random.nextInt(10))).map { j =>
+      Column.create(
+        table.id,
+        ColumnName(s"column-${i}-${j}"),
+        ColumnType.values((i + j) % ColumnType.values.length),
+      )
+    }
+  }
+
+  object DatabaseStoreImpl extends DatabaseStore {
+    override def findById(databaseId: DatabaseId): Async[Option[Database]] =
+      Future { databases.find { _.id == databaseId } }
+
+    override def findAll(): Async[Seq[Database]] = Future.successful {
+      databases
+    }
+  }
+
+  object TableStoreImpl extends TableStore {
+    override def findById(tableId: TableId): Async[Option[Table]] = Future {
+      tables.find { _.id == tableId }
+    }
+
+    override def findAllByDatabaseId(
+      databaseId: DatabaseId,
+    ): Async[Seq[Table]] = Future {
+      tables.filter { _.databaseId == databaseId }
+    }
+  }
+
+  object ColumnStoreImpl extends ColumnStore {
+    override def findAllByTableId(tableId: TableId): Async[Seq[Column]] =
+      Future { columns.filter { _.tableId == tableId } }
+  }
+
+end TestData
+
 case class Database(
   id: DatabaseId,
   name: DatabaseName,
