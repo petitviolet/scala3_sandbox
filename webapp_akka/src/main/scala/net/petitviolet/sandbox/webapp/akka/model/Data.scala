@@ -33,6 +33,9 @@ case class Table(
   name: TableName,
   updatedAt: ZonedDateTime,
 )
+object Table:
+  def create(databaseId: DatabaseId, name: TableName): Table =
+    apply(TableId.generate, databaseId, name, ZonedDateTime.now())
 
 opaque type TableId = String
 object TableId:
@@ -53,6 +56,13 @@ case class Column(
   name: ColumnName,
   columnType: ColumnType,
 )
+object Column:
+  def create(
+    tableId: TableId,
+    name: ColumnName,
+    columnType: ColumnType,
+  ): Column =
+    apply(ColumnId.generate, tableId, name, columnType)
 
 opaque type ColumnId = String
 object ColumnId:
@@ -72,6 +82,7 @@ enum ColumnType {
 type Async = [T] =>> (ExecutionContext ?=> Future[T])
 
 trait DatabaseStore:
+  def findAll(): Async[Seq[Database]]
   def findById(databaseId: DatabaseId): Async[Option[Database]]
 
 trait TableStore:
