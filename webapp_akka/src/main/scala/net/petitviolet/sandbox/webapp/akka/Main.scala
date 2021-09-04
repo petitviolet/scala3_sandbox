@@ -26,7 +26,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import java.io.IOException
 import scala.concurrent.{ExecutionContext, Future}
 
-object AkkaHttpWebApp extends App with Service:
+object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
   given system: ActorSystem = ActorSystem()
   given executionContext: ExecutionContext = system.dispatcher
 
@@ -40,7 +40,7 @@ end AkkaHttpWebApp
 
 case class Message(text: String)
 
-trait Service:
+trait Service(graphQLService: GraphQLService):
   given system: ActorSystem
   given executionContext: ExecutionContext
 
@@ -61,11 +61,14 @@ trait Service:
 
   val routes: Route = {
     logRequestResult("webapp-akka") {
-      pathPrefix("echo") {
-        (get & path(Segment)) { path =>
-          complete { path }
-        }
+      pathPrefix("graphql") {
+        ???
       } ~
+        pathPrefix("echo") {
+          (get & path(Segment)) { path =>
+            complete { path }
+          }
+        } ~
         pathPrefix("ping") {
           (post & entity(as[Message])) { message =>
             complete { message.text }
