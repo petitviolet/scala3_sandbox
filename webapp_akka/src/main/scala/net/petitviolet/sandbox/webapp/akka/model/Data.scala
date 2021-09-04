@@ -2,7 +2,7 @@ package net.petitviolet.sandbox.webapp.akka.model
 
 import java.time.ZonedDateTime
 import java.util.UUID
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.annotation.targetName
 
 case class Database(
@@ -69,7 +69,7 @@ enum ColumnType {
   case Int, Long, Varchar
 }
 
-type Async = [T] =>> (ExecutionContext ?=> T)
+type Async = [T] =>> (ExecutionContext ?=> Future[T])
 
 trait DatabaseStore:
   def findById(databaseId: DatabaseId): Async[Option[Database]]
