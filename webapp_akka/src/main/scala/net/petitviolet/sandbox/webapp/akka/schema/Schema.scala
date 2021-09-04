@@ -1,7 +1,7 @@
 package net.petitviolet.sandbox.webapp.akka.schema
 import net.petitviolet.sandbox.webapp.akka.model
 import net.petitviolet.sandbox.webapp.akka.model.*
-import sangria.schema.*
+import sangria.schema.{Context => SangriaContext, *}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -10,6 +10,9 @@ import scala.util.Try
 
 object Schema {
   case class Context(executionContext: ExecutionContext)
+
+  extension [T](ctx: SangriaContext[Context, T])
+    def ec: ExecutionContext = ctx.ctx.executionContext
 
   given DateTimeType: ScalarType[ZonedDateTime] = {
     import sangria.validation._
@@ -43,14 +46,26 @@ object Schema {
     databaseStore: DatabaseStore,
     tableStore: TableStore,
     columnStore: ColumnStore,
-  )(using ec: ExecutionContext) {
+  ):
+    def schema: ObjectType[Context, Unit] = ObjectType(
+      "Query",
+      fields[Context, Unit](
+        Field(
+          "databases",
+          ListType(DatabaseType),
+          resolve = { ctx =>
+            databaseStore.findAll()(using ctx.ec)
+          },
+        ),
+      ),
+    )
     // cannot use macro in Scala3
     // val DatabaseType = deriveObjectType[Context, Database]()
     // given seems to be equal to `implicit lazy val`
-    given DatabaseType: ObjectType[Unit, Database] = ObjectType(
+    given DatabaseType: ObjectType[Context, Database] = ObjectType(
       "Database",
       "database",
-      fields[Unit, Database](
+      fields[Context, Database](
         Field("id", StringType, resolve = _.value.id.value),
         Field("name", StringType, resolve = _.value.name.value),
         Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
@@ -58,16 +73,16 @@ object Schema {
           "tables",
           ListType(TableType),
           resolve = { ctx =>
-            tableStore.findAllByDatabaseId(ctx.value.id)
+            tableStore.findAllByDatabaseId(ctx.value.id)(using ctx.ec)
           },
         ),
       ),
     )
 
-    given TableType: ObjectType[Unit, Table] = ObjectType(
+    given TableType: ObjectType[Context, Table] = ObjectType(
       "Table",
       "table",
-      fields[Unit, Table](
+      fields[Context, Table](
         Field("id", StringType, resolve = _.value.id.value),
         Field("name", StringType, resolve = _.value.name.value),
         Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
@@ -75,20 +90,20 @@ object Schema {
           "database",
           OptionType(DatabaseType),
           resolve = { ctx =>
-            databaseStore.findById(ctx.value.databaseId)
+            databaseStore.findById(ctx.value.databaseId)(using ctx.ec)
           },
         ),
         Field(
           "columns",
           ListType(ColumnType),
           resolve = { ctx =>
-            columnStore.findAllByTableId(ctx.value.id)
+            columnStore.findAllByTableId(ctx.value.id)(using ctx.ec)
           },
         ),
       ),
     )
 
-    given ColumnType: ObjectType[Unit, Column] = {
+    given ColumnType: ObjectType[Context, Column] = {
       val ColumnTypeType = EnumType[model.ColumnType](
         "ColumnType",
         Some("column type"),
@@ -101,7 +116,7 @@ object Schema {
       ObjectType(
         "Column",
         "column",
-        fields[Unit, Column](
+        fields[Context, Column](
           Field("id", StringType, resolve = _.value.id.value),
           Field("name", StringType, resolve = _.value.name.value),
           Field("type", ColumnTypeType, resolve = _.value.columnType),
@@ -109,12 +124,12 @@ object Schema {
             "table",
             OptionType(TableType),
             resolve = { ctx =>
-              tableStore.findById(ctx.value.tableId)
+              tableStore.findById(ctx.value.tableId)(using ctx.ec)
             },
           ),
         ),
       )
     }
-  }
+  end Query
 
 }
