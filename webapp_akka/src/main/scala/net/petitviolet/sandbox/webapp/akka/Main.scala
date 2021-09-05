@@ -25,6 +25,7 @@ import io.circe.{jawn, Decoder, Json}
 import scala.util.chaining.scalaUtilChainingOps
 import java.io.IOException
 import scala.concurrent.{ExecutionContext, Future}
+import scala.deriving.Mirror
 
 object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
   given system: ActorSystem = ActorSystem()
@@ -49,7 +50,9 @@ trait Service(graphQLService: GraphQLService):
 
   // raise `Compiler bug: `constValue` was not evaluated by the compiler`
   // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
-  given Decoder[Message] = io.circe.generic.semiauto.deriveDecoder
+  inline
+  given [T](using inline A: Mirror.Of[T]): Decoder[T] =
+    io.circe.generic.semiauto.deriveDecoder(using A)
   type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> Unmarshaller[HttpEntity, T])
   given [T]: JsonUnmarshaller[T] =
     Unmarshaller.byteStringUnmarshaller.map { (bs: ByteString) =>
