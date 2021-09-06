@@ -41,7 +41,7 @@ end AkkaHttpWebApp
 
 case class Message(text: String)
 
-trait Service(graphQLService: GraphQLService):
+trait Service(graphQLService: GraphQLService) extends CirceSupport:
   given system: ActorSystem
   given executionContext: ExecutionContext
 
