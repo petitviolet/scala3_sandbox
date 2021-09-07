@@ -8,6 +8,7 @@ import io.circe.{jawn, Decoder, Encoder, Printer}
 
 import scala.deriving.Mirror
 
+// Strongly recommend to use https://github.com/hseeberger/akka-http-json
 trait CirceSupport {
   // raise `Compiler bug: `constValue` was not evaluated by the compiler`
   // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
