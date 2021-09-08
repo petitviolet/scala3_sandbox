@@ -73,7 +73,9 @@ trait GraphQLService(
 }
 
 trait GraphQLRouting { self: CirceSupport =>
-  def graphqlPost(graphQLService: GraphQLService)(using ExecutionContext) = {
+  def graphqlPost(
+    graphQLService: GraphQLService,
+  )(using ExecutionContext): Route = {
     guard {
       (post & entity(as[GraphQLHttpRequest])) { body =>
         val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
@@ -113,7 +115,7 @@ trait GraphQLRouting { self: CirceSupport =>
   }
 
   private def guard = {
-    handleExceptions(exceptionHandler) & handleRejections(rejectionHandler)
+    handleRejections(rejectionHandler) & handleExceptions(exceptionHandler)
   }
 
   private val rejectionHandler: RejectionHandler = {
@@ -124,7 +126,7 @@ trait GraphQLRouting { self: CirceSupport =>
       }
       complete(
         StatusCodes.UnprocessableEntity,
-        GraphQLErrorResponse("cannot be processed", t),
+        GraphQLErrorResponse("[Rejection]cannot be processed", t),
       )
     }
 
@@ -143,7 +145,7 @@ trait GraphQLRouting { self: CirceSupport =>
     ExceptionHandler { case t =>
       complete(
         StatusCodes.InternalServerError,
-        GraphQLErrorResponse("Internal Server Error", Some(t)),
+        GraphQLErrorResponse("[Exception]Internal Server Error", Some(t)),
       )
     }
   }
