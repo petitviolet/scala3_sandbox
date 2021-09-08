@@ -26,6 +26,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import java.io.IOException
 import scala.concurrent.{ExecutionContext, Future}
 import scala.deriving.Mirror
+import concurrent.duration.DurationInt
 
 object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
   given system: ActorSystem = ActorSystem()
@@ -34,9 +35,16 @@ object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
   override val config = ConfigFactory.load()
   override val logger = Logging(system, "AkkaHttpWebApp")
 
-  Http()
+  val binding = Http()
     .newServerAt(config.getString("http.interface"), config.getInt("http.port"))
     .bindFlow(routes)
+    .map(_.addToCoordinatedShutdown(hardTerminationDeadline = 10.seconds))
+
+  scala.io.StdIn.readLine("Press enter key to stop...\n")
+
+  binding
+    .flatMap(_.unbind())
+    .onComplete(_ => system.terminate())
 end AkkaHttpWebApp
 
 case class Message(text: String)
