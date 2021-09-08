@@ -26,11 +26,11 @@ lazy val `syntax` = project.in(file("syntax"))
   .settings(
     commonSettings("syntax"),
     libraryDependencies ++= Seq(
-      ("org.scalameta" %% "scalameta" % "4.4.27").cross(CrossVersion.for3Use2_13)
+      ("org.scalameta" %% "scalameta" % "4.4.27").cross(CrossVersion.for3Use2_13),
     )
   )
 
-val AkkaVersion = "2.6.15"
+val AkkaVersion = "2.6.16"
 val AkkaHttpVersion = "10.2.6"
 val circeVersion = "0.14.1"
 
@@ -52,6 +52,10 @@ lazy val `webapp-akka` = project.in(file("webapp_akka"))
     libraryDependencies ++= circeDependencies ++ Seq(
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
-    ).map(_.cross(CrossVersion.for3Use2_13)) ++ sangriaDependencies
+      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+      "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+    ).map(_.cross(CrossVersion.for3Use2_13)) ++
+      sangriaDependencies ++ Seq(
+      "ch.qos.logback" % "logback-classic" % "1.2.5" % Runtime,
+    )
   )
