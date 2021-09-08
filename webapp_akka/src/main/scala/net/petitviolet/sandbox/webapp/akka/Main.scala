@@ -41,7 +41,9 @@ end AkkaHttpWebApp
 
 case class Message(text: String)
 
-trait Service(graphQLService: GraphQLService) extends CirceSupport:
+trait Service(graphQLService: GraphQLService)
+    extends CirceSupport
+    with GraphQLRouting:
   given system: ActorSystem
   given executionContext: ExecutionContext
 
@@ -49,9 +51,9 @@ trait Service(graphQLService: GraphQLService) extends CirceSupport:
   val logger: LoggingAdapter
 
   val routes: Route = {
-    logRequestResult("webapp-akka") {
+    logRequestResult("webapp-akka", Logging.WarningLevel) {
       pathPrefix("graphql") {
-        ???
+        graphqlPost(graphQLService)
       } ~
         pathPrefix("echo") {
           (get & path(Segment)) { path =>
