@@ -24,27 +24,42 @@ import io.circe.{jawn, Decoder, Json}
 
 import scala.util.chaining.scalaUtilChainingOps
 import java.io.IOException
-import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.Executors
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.deriving.Mirror
 import concurrent.duration.DurationInt
 
 object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
   given system: ActorSystem = ActorSystem()
   given executionContext: ExecutionContext = system.dispatcher
+  override val graphqlExecutionContext =
+    ExecutionContext.fromExecutorService(Executors.newCachedThreadPool())
 
   override val config = ConfigFactory.load()
   override val logger = Logging(system, "AkkaHttpWebApp")
 
-  val binding = Http()
-    .newServerAt(config.getString("http.interface"), config.getInt("http.port"))
-    .bindFlow(routes)
-    .map(_.addToCoordinatedShutdown(hardTerminationDeadline = 10.seconds))
+  def main = {
+    val interface = config.getString("http.interface")
+    val host = config.getInt("http.port")
+    val binding = Http()
+      .newServerAt(interface, host)
+      .bindFlow(routes)
+      .map(_.addToCoordinatedShutdown(hardTerminationDeadline = 10.seconds))
 
-  scala.io.StdIn.readLine("Press enter key to stop...\n")
+    logger.info(s"Server started at ${interface}:${host}\n")
+    scala.io.StdIn.readLine("Press enter key to stop...\n")
 
-  binding
-    .flatMap(_.unbind())
-    .onComplete(_ => system.terminate())
+    val x = binding
+      .flatMap(_.unbind())(ExecutionContext.global)
+      .tap { _.onComplete { _ => system.terminate() }(ExecutionContext.global) }
+
+    Await.ready(x, 5.seconds)
+    sys.runtime.gc()
+    println(s"shutdown completed!\n")
+  }
+
+  main
+
 end AkkaHttpWebApp
 
 case class Message(text: String)
@@ -54,15 +69,16 @@ trait Service(graphQLService: GraphQLService)
     with GraphQLRouting:
   given system: ActorSystem
   given executionContext: ExecutionContext
+  def graphqlExecutionContext: ExecutionContext
 
   def config: Config
-  val logger: LoggingAdapter
+  def logger: LoggingAdapter
 
-  val routes: Route = {
+  lazy val routes: Route = {
     logRequestResult("webapp-akka", Logging.WarningLevel) {
-      pathPrefix("graphql") {
-        graphqlPost(graphQLService)
-      } ~
+      path("graphql") {
+          graphqlPost(graphQLService)(using graphqlExecutionContext)
+        } ~
         pathPrefix("echo") {
           (get & path(Segment)) { path =>
             complete { path }
