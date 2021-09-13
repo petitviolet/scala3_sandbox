@@ -4,6 +4,7 @@ import akka.http.scaladsl.model.{
   HttpEntity,
   HttpRequest,
   HttpResponse,
+  MediaTypes,
   StatusCode,
   StatusCodes,
 }
@@ -25,6 +26,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.common.EntityStreamingSupport
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
+import akka.http.scaladsl.model.headers.Accept
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.{
   ExceptionHandler,
@@ -111,6 +113,18 @@ trait GraphQLRouting { self: CirceSupport =>
             )
         }
       }
+    }
+  }
+
+  def graphiQL: Route = {
+    inline def acceptHtml = headerValuePF {
+      case Accept(mediaRanges) if mediaRanges.exists { mediaRange =>
+            mediaRange.isWildcard || mediaRange.matches(MediaTypes.`text/html`)
+          } =>
+        mediaRanges
+    }.flatMap { _ => pass }
+    (get & acceptHtml) {
+      getFromResource("resources/playground.html")
     }
   }
 
