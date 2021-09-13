@@ -77,8 +77,8 @@ trait GraphQLService(
 trait GraphQLRouting { self: CirceSupport =>
   def graphqlPost(
     graphQLService: GraphQLService,
-  )(using ExecutionContext): Route = {
-    guard {
+  ): ExecutionContext ?=> Route = {
+    {
       (post & entity(as[GraphQLHttpRequest])) { body =>
         val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
         queryOpt.map { q => QueryParser.parse(q) } match {
@@ -128,7 +128,7 @@ trait GraphQLRouting { self: CirceSupport =>
     }
   }
 
-  private def guard = {
+  private lazy val guard = {
     handleRejections(rejectionHandler) & handleExceptions(exceptionHandler)
   }
 
