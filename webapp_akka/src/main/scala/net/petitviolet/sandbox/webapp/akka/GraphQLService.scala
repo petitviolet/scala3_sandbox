@@ -116,7 +116,7 @@ trait GraphQLRouting { self: CirceSupport =>
     }
   }
 
-  def graphiQL: Route = {
+  def graphiQLGet: Route = {
     inline def acceptHtml = headerValuePF {
       case Accept(mediaRanges) if mediaRanges.exists { mediaRange =>
             mediaRange.isWildcard || mediaRange.matches(MediaTypes.`text/html`)

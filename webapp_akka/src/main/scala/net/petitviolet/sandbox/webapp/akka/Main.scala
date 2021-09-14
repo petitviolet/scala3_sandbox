@@ -74,10 +74,10 @@ trait Service(graphQLService: GraphQLService)
   def config: Config
   def logger: LoggingAdapter
 
-  lazy val routes: Route = {
+  def routes: Route = {
     logRequestResult("webapp-akka", Logging.WarningLevel) {
       path("graphiql") {
-        graphiQL
+        graphiQLGet
       } ~
         path("graphql") {
           graphqlPost(graphQLService)(using graphqlExecutionContext)
