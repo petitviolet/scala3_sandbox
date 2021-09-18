@@ -92,3 +92,4 @@ project/plugins/project/
 .lib/
 
 
+.bsp/sbt.json
