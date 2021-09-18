@@ -123,8 +123,9 @@ trait GraphQLRouting { self: CirceSupport =>
           } =>
         mediaRanges
     }.flatMap { _ => pass }
+
     (get & acceptHtml) {
-      getFromResource("resources/playground.html")
+      getFromResource("playground.html")
     }
   }
 
