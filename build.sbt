@@ -49,6 +49,7 @@ val sangriaDependencies = Seq(
 lazy val `webapp-akka` = project.in(file("webapp_akka"))
   .settings(
     commonSettings("webapp-akka"),
+    run / fork := true,
     libraryDependencies ++= circeDependencies ++ Seq(
       "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
       "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
