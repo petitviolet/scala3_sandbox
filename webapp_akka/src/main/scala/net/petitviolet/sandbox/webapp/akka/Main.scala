@@ -72,28 +72,6 @@ trait Service(graphQLService: GraphQLService)
         system.terminate()
     }
 
-//    scala.io.StdIn.readLine(
-//      s"Server started at ${interface}:${host}\nPress enter key to stop...\n",
-//    )
-//
-//    logger.info(s"Started termination process...")
-//
-//    binding
-//      .flatMap(_.unbind())(ExecutionContext.global)
-//      .flatMap { _ =>
-//        logger.info(s"Binding has been terminated")
-//        system.terminate()
-//      }(ExecutionContext.global)
-//      .map { _ => akka.Done }(ExecutionContext.global)
-//      .tap {
-//        _.onComplete {
-//          case Success(binding) =>
-//            logger.info(s"system has been terminated")
-//          case Failure(ex) =>
-//            logger.error(s"Error has happened: $ex", ex)
-//        }(ExecutionContext.global)
-//      }
-//      .pipe { Await.ready(_, 11.seconds) }
   }
 
   lazy val routes: Route = {
