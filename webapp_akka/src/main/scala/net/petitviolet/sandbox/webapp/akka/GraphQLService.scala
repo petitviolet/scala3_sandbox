@@ -1,24 +1,5 @@
 package net.petitviolet.sandbox.webapp.akka
 
-import akka.http.scaladsl.model.{
-  HttpEntity,
-  HttpRequest,
-  HttpResponse,
-  MediaTypes,
-  StatusCode,
-  StatusCodes,
-}
-import io.circe.{Decoder, Json, JsonObject}
-import net.petitviolet.sandbox.webapp.akka.model.*
-import net.petitviolet.sandbox.webapp.akka.schema.*
-import net.petitviolet.sandbox.webapp.akka.schema.Schema.Context
-import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
-import sangria.marshalling.{InputUnmarshaller, ResultMarshaller}
-import sangria.parser.QueryParser
-
-import java.util.concurrent.Executors
-import scala.concurrent.{ExecutionContext, Future}
-import scala.deriving.Mirror
 import akka.actor.ActorSystem
 import akka.event.{Logging, LoggingAdapter}
 import akka.http.javadsl.server.RequestEntityExpectedRejection
@@ -27,26 +8,25 @@ import akka.http.scaladsl.client.RequestBuilding
 import akka.http.scaladsl.common.EntityStreamingSupport
 import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import akka.http.scaladsl.model.headers.Accept
+import akka.http.scaladsl.model.*
 import akka.http.scaladsl.server.Directives.*
-import akka.http.scaladsl.server.{
-  ExceptionHandler,
-  MalformedQueryParamRejection,
-  MalformedRequestContentRejection,
-  Rejection,
-  RejectionHandler,
-  RejectionWithOptionalCause,
-  Route,
-  StandardRoute,
-}
-import akka.http.scaladsl.unmarshalling.{
-  FromEntityUnmarshaller,
-  FromRequestUnmarshaller,
-  Unmarshal,
-  Unmarshaller,
-}
-import sangria.marshalling.circe.{CirceInputUnmarshaller, CirceResultMarshaller}
+import akka.http.scaladsl.server.*
+import akka.http.scaladsl.unmarshalling.*
+import akka.stream.Materializer
+import akka.util.ByteString
+import io.circe.{Decoder, Json, JsonObject}
+import net.petitviolet.sandbox.webapp.akka.model.*
+import net.petitviolet.sandbox.webapp.akka.schema.*
+import net.petitviolet.sandbox.webapp.akka.schema.Schema.Context
 import sangria.ast.Document
+import sangria.execution.{ErrorWithResolver, Executor, QueryAnalysisError}
+import sangria.marshalling.circe.*
+import sangria.marshalling.{InputUnmarshaller, ResultMarshaller}
+import sangria.parser.QueryParser
 
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
+import scala.deriving.Mirror
 import scala.util.{Failure, Success}
 
 trait GraphQLService(
@@ -78,40 +58,39 @@ trait GraphQLRouting { self: CirceSupport =>
   def graphqlPost(
     graphQLService: GraphQLService,
   ): ExecutionContext ?=> Route = {
-    {
-      (post & entity(as[GraphQLHttpRequest])) { body =>
-        val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
-        queryOpt.map { q => QueryParser.parse(q) } match {
-          case Some(Success(document)) =>
-            val req = GraphQLRequest(
-              document,
-              varOpt.fold(Json.obj()) {
-                identity
-              },
-              operationNameOpt,
-            )
-            val result: Future[(StatusCode, Json)] = graphQLService
-              .execute(req)
-              .map { json => StatusCodes.OK -> json }
-              .recover {
-                case error: QueryAnalysisError =>
-                  StatusCodes.BadRequest -> error.resolveError
-                case error: ErrorWithResolver =>
-                  StatusCodes.InternalServerError -> error.resolveError
-              }
-            complete(result)
+    (post & entity(as[GraphQLHttpRequest])) { body =>
+      println(s"body: ${body.toString}")
+      val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
+      queryOpt.map { q => QueryParser.parse(q) } match {
+        case Some(Success(document)) =>
+          val req = GraphQLRequest(
+            document,
+            varOpt.fold(Json.obj()) {
+              identity
+            },
+            operationNameOpt,
+          )
+          val result: Future[(StatusCode, Json)] = graphQLService
+            .execute(req)
+            .map { json => StatusCodes.OK -> json }
+            .recover {
+              case error: QueryAnalysisError =>
+                StatusCodes.BadRequest -> error.resolveError
+              case error: ErrorWithResolver =>
+                StatusCodes.InternalServerError -> error.resolveError
+            }
+          complete(result)
 
-          case Some(Failure(error)) =>
-            complete(
-              StatusCodes.BadRequest,
-              GraphQLErrorResponse("failed to parse query", Some(error)),
-            )
-          case None =>
-            complete(
-              StatusCodes.BadRequest,
-              InvalidRequest("query must be given"),
-            )
-        }
+        case Some(Failure(error)) =>
+          complete(
+            StatusCodes.BadRequest,
+            GraphQLErrorResponse("failed to parse query", Some(error)),
+          )
+        case None =>
+          complete(
+            StatusCodes.BadRequest,
+            InvalidRequest("query must be given"),
+          )
       }
     }
   }
