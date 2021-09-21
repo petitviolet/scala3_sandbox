@@ -2,19 +2,26 @@ package net.petitviolet.sandbox.webapp.akka
 
 import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, MediaTypes}
-import akka.http.scaladsl.unmarshalling.Unmarshaller
+import akka.http.scaladsl.unmarshalling.{
+  FromByteStringUnmarshaller,
+  FromEntityUnmarshaller,
+  Unmarshaller,
+}
 import akka.util.ByteString
-import io.circe.{jawn, Decoder, Encoder, Printer}
+import io.circe.*
 
+import scala.concurrent.Future
 import scala.deriving.Mirror
 
 // Strongly recommend to use https://github.com/hseeberger/akka-http-json
 trait CirceSupport {
+  given decodeNullable[A: Decoder]: Decoder[Option[A]] = Decoder.decodeOption[A]
+
   // raise `Compiler bug: `constValue` was not evaluated by the compiler`
   // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
-  type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> Unmarshaller[HttpEntity, T])
+  type JsonUnmarshaller = [T] =>> (Decoder[T] ?=> FromEntityUnmarshaller[T])
 
-  given [T]: JsonUnmarshaller[T] =
+  given jsonUnmarshaller[T]: JsonUnmarshaller[T] =
     Unmarshaller.byteStringUnmarshaller.map { (bs: ByteString) =>
       jawn
         .parseByteBuffer(bs.asByteBuffer)
