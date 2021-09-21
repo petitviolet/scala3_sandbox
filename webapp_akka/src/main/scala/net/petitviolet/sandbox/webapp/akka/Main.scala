@@ -20,7 +20,6 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.ByteString
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.{jawn, Decoder, Json}
-import net.petitviolet.sandbox.webapp.akka.AkkaHttpWebApp.{logger, system}
 
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -31,15 +30,15 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.{Failure, Success}
 
 object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
-  given system: ActorSystem = ActorSystem("AkkaHttpWebApp")
-  given executionContext: ExecutionContext = system.dispatcher
+  given actorSystem: ActorSystem = ActorSystem("AkkaHttpWebApp")
+  given executionContext: ExecutionContext = actorSystem.dispatcher
   override val graphqlExecutionContext =
     ExecutionContext.fromExecutorService(
       Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors()),
     )
 
   val config = ConfigFactory.load()
-  override val logger = Logging(system, "AkkaHttpWebApp")
+  override val logger = Logging(actorSystem, "AkkaHttpWebApp")
 
   run(config)
 
@@ -69,7 +68,7 @@ trait Service(graphQLService: GraphQLService)
         logger.info(s"Server started at ${interface}:${host}!")
       case Failure(e) =>
         logger.error(s"failed to bind", e)
-        system.terminate()
+        summon[ActorSystem].terminate()
     }
 
   }
