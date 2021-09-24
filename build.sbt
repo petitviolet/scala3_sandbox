@@ -1,4 +1,4 @@
-val scala3Version = "3.0.0"
+val scala3Version = "3.0.2"
 val javaVersion = "11"
 val projectName = "scala3-sandbox"
 val projectVersion = "0.1.0"
