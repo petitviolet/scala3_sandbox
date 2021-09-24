@@ -57,6 +57,6 @@ lazy val `webapp-akka` = project.in(file("webapp_akka"))
       "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
     ).map(_.cross(CrossVersion.for3Use2_13)) ++
       sangriaDependencies ++ Seq(
-      "ch.qos.logback" % "logback-classic" % "1.2.5" % Runtime,
+      "ch.qos.logback" % "logback-classic" % "1.2.6" % Runtime,
     )
   )
