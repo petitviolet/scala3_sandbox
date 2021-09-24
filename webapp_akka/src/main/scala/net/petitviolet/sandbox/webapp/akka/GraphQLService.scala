@@ -15,6 +15,7 @@ import akka.http.scaladsl.unmarshalling.*
 import akka.stream.Materializer
 import akka.util.ByteString
 import io.circe.{Decoder, Json, JsonObject}
+import net.petitviolet.sandbox.webapp.akka.common.LoggerProvider
 import net.petitviolet.sandbox.webapp.akka.model.*
 import net.petitviolet.sandbox.webapp.akka.schema.*
 import net.petitviolet.sandbox.webapp.akka.schema.Schema.Context
@@ -35,18 +36,24 @@ trait GraphQLService(
   columnStore: ColumnStore,
 ) extends CirceSupport {
 
-  private lazy val schema = Schema.build(
+  private lazy val schema: sangria.schema.Schema[Context, Unit] = Schema.build(
     Schema.Query(databaseStore, tableStore, columnStore),
     Schema.Mutation(),
   )
 
+  private val graphqlExecutionContext =
+    ExecutionContext.fromExecutorService(
+      Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors()),
+    )
+
   def execute(graphQLRequest: GraphQLRequest): Async[Json] = {
-    val context = Context(summon[ExecutionContext])
+    val context = Context(graphqlExecutionContext)
     Executor
       .execute(
         schema,
         graphQLRequest.document,
         context,
+        root = (), // without explicit `()`, it throws; java.lang.NoSuchMethodError: 'scala.runtime.BoxedUnit sangria.execution.Executor$.execute$default$4()'
         operationName = graphQLRequest.operationName,
         variables = graphQLRequest.variables,
       )
@@ -54,12 +61,13 @@ trait GraphQLService(
 
 }
 
-trait GraphQLRouting { self: CirceSupport =>
-  def graphqlPost(
-    graphQLService: GraphQLService,
-  ): ExecutionContext ?=> Route = {
+trait GraphQLRouting { self: CirceSupport with LoggerProvider =>
+  given ExecutionContext =
+    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
+
+  def graphqlPost(graphQLService: GraphQLService): Route = {
     (post & entity(as[GraphQLHttpRequest])) { body =>
-      println(s"body: ${body.toString}")
+      logger.info(s"body: ${body.toString}")
       val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
       queryOpt.map { q => QueryParser.parse(q) } match {
         case Some(Success(document)) =>
@@ -72,13 +80,17 @@ trait GraphQLRouting { self: CirceSupport =>
           )
           val result: Future[(StatusCode, Json)] = graphQLService
             .execute(req)
-            .map { json => StatusCodes.OK -> json }
+            .map { json =>
+              logger.info(s"json: $json")
+              StatusCodes.OK -> json
+            }
             .recover {
               case error: QueryAnalysisError =>
                 StatusCodes.BadRequest -> error.resolveError
               case error: ErrorWithResolver =>
                 StatusCodes.InternalServerError -> error.resolveError
             }
+          logger.info(s"result: $result")
           complete(result)
 
         case Some(Failure(error)) =>
@@ -92,7 +104,7 @@ trait GraphQLRouting { self: CirceSupport =>
             InvalidRequest("query must be given"),
           )
       }
-    }
+      }
   }
 
   def graphiQLGet: Route = {

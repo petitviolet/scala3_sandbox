@@ -20,6 +20,7 @@ import akka.stream.{ActorMaterializer, Materializer}
 import akka.util.ByteString
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.{jawn, Decoder, Json}
+import net.petitviolet.sandbox.webapp.akka.common.LoggerProvider
 
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -29,16 +30,13 @@ import scala.deriving.Mirror
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.{Failure, Success}
 
-object AkkaHttpWebApp extends App with Service(GraphQLServiceImpl):
-  given actorSystem: ActorSystem = ActorSystem("AkkaHttpWebApp")
-  given executionContext: ExecutionContext = actorSystem.dispatcher
-  override val graphqlExecutionContext =
-    ExecutionContext.fromExecutorService(
-      Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors()),
-    )
-
+object AkkaHttpWebApp
+    extends App
+    with Service(GraphQLServiceImpl)
+    with LoggerProvider:
   val config = ConfigFactory.load()
-  override val logger = Logging(actorSystem, "AkkaHttpWebApp")
+  given actorSystem: ActorSystem = ActorSystem("AkkaHttpWebApp", config)
+  given executionContext: ExecutionContext = actorSystem.dispatcher
 
   run(config)
 
@@ -48,10 +46,8 @@ case class Message(text: String)
 
 trait Service(graphQLService: GraphQLService)
     extends CirceSupport
-    with GraphQLRouting:
-  def graphqlExecutionContext: ExecutionContext
-
-  def logger: LoggingAdapter
+    with GraphQLRouting
+    with LoggerProvider:
 
   def run(config: Config): ActorSystem ?=> ExecutionContext ?=> Unit = {
     val interface = config.getString("http.interface")
@@ -77,16 +73,20 @@ trait Service(graphQLService: GraphQLService)
     logRequestResult("webapp-akka", Logging.WarningLevel) {
       path("graphql") {
         graphiQLGet
-          ~ graphqlPost(graphQLService)(using graphqlExecutionContext)
+          ~ graphqlPost(graphQLService)
       } ~
         pathPrefix("echo") {
           (get & path(Segment)) { path =>
-            complete { path }
+            complete {
+              path
+            }
           }
         } ~
         pathPrefix("ping") {
           (post & entity(as[Message])) { message =>
-            complete { message.text }
+            complete {
+              message.text
+            }
           }
         }
     }
