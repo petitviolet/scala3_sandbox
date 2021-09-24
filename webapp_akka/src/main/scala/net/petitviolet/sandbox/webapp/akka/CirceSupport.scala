@@ -16,6 +16,7 @@ import scala.deriving.Mirror
 // Strongly recommend to use https://github.com/hseeberger/akka-http-json
 trait CirceSupport {
   given decodeNullable[A: Decoder]: Decoder[Option[A]] = Decoder.decodeOption[A]
+  given decodeJson: Decoder[Json] = Decoder.decodeJson
 
   // raise `Compiler bug: `constValue` was not evaluated by the compiler`
   // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
