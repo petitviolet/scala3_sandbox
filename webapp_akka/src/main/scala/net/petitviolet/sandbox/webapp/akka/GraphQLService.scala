@@ -53,7 +53,8 @@ trait GraphQLService(
         schema,
         graphQLRequest.document,
         context,
-        root = (), // without explicit `()`, it throws; java.lang.NoSuchMethodError: 'scala.runtime.BoxedUnit sangria.execution.Executor$.execute$default$4()'
+        root =
+          (), // without explicit `()`, it throws; java.lang.NoSuchMethodError: 'scala.runtime.BoxedUnit sangria.execution.Executor$.execute$default$4()'
         operationName = graphQLRequest.operationName,
         variables = graphQLRequest.variables,
       )

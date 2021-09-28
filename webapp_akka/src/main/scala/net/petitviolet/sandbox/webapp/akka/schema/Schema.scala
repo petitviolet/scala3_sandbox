@@ -67,42 +67,44 @@ object Schema {
     given DatabaseType: ObjectType[Context, Database] = ObjectType(
       "Database",
       "database",
-      () => fields[Context, Database](
-        Field("id", StringType, resolve = _.value.id.value),
-        Field("name", StringType, resolve = _.value.name.value),
-        Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
-        Field(
-          "tables",
-          ListType(TableType),
-          resolve = { ctx =>
-            tableStore.findAllByDatabaseId(ctx.value.id)(using ctx.ec)
-          },
+      () =>
+        fields[Context, Database](
+          Field("id", StringType, resolve = _.value.id.value),
+          Field("name", StringType, resolve = _.value.name.value),
+          Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
+          Field(
+            "tables",
+            ListType(TableType),
+            resolve = { ctx =>
+              tableStore.findAllByDatabaseId(ctx.value.id)(using ctx.ec)
+            },
+          ),
         ),
-      ),
     )
 
     given TableType: ObjectType[Context, Table] = ObjectType(
       "Table",
       "table",
-      () => fields[Context, Table](
-        Field("id", StringType, resolve = _.value.id.value),
-        Field("name", StringType, resolve = _.value.name.value),
-        Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
-        Field(
-          "database",
-          OptionType(DatabaseType),
-          resolve = { ctx =>
-            databaseStore.findById(ctx.value.databaseId)(using ctx.ec)
-          },
+      () =>
+        fields[Context, Table](
+          Field("id", StringType, resolve = _.value.id.value),
+          Field("name", StringType, resolve = _.value.name.value),
+          Field("updatedAt", DateTimeType, resolve = _.value.updatedAt),
+          Field(
+            "database",
+            OptionType(DatabaseType),
+            resolve = { ctx =>
+              databaseStore.findById(ctx.value.databaseId)(using ctx.ec)
+            },
+          ),
+          Field(
+            "columns",
+            ListType(ColumnType),
+            resolve = { ctx =>
+              columnStore.findAllByTableId(ctx.value.id)(using ctx.ec)
+            },
+          ),
         ),
-        Field(
-          "columns",
-          ListType(ColumnType),
-          resolve = { ctx =>
-            columnStore.findAllByTableId(ctx.value.id)(using ctx.ec)
-          },
-        ),
-      ),
     )
 
     given ColumnType: ObjectType[Context, Column] = {
@@ -118,18 +120,19 @@ object Schema {
       ObjectType(
         "Column",
         "column",
-        () => fields[Context, Column](
-          Field("id", StringType, resolve = _.value.id.value),
-          Field("name", StringType, resolve = _.value.name.value),
-          Field("type", ColumnTypeType, resolve = _.value.columnType),
-          Field(
-            "table",
-            OptionType(TableType),
-            resolve = { ctx =>
-              tableStore.findById(ctx.value.tableId)(using ctx.ec)
-            },
+        () =>
+          fields[Context, Column](
+            Field("id", StringType, resolve = _.value.id.value),
+            Field("name", StringType, resolve = _.value.name.value),
+            Field("type", ColumnTypeType, resolve = _.value.columnType),
+            Field(
+              "table",
+              OptionType(TableType),
+              resolve = { ctx =>
+                tableStore.findById(ctx.value.tableId)(using ctx.ec)
+              },
+            ),
           ),
-        ),
       )
     }
   end Query
