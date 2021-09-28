@@ -8,7 +8,6 @@ def commonSettings(projectName: String) = {
       name := projectName,
       version := projectVersion,
       scalaVersion := scala3Version,
-      libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test",
       scalafmtOnCompile := true,
    ) ++ scalacSettings
 }
@@ -20,7 +19,7 @@ lazy val scalacSettings = Seq(
 
 lazy val `scala3-sandbox` = project
   .in(file("."))
-  .aggregate(syntax)
+  .aggregate(syntax, `webapp-akka`)
 
 lazy val `syntax` = project.in(file("syntax"))
   .settings(
@@ -30,8 +29,8 @@ lazy val `syntax` = project.in(file("syntax"))
     )
   )
 
-val AkkaVersion = "2.6.16"
-val AkkaHttpVersion = "10.2.6"
+val akkaVersion = "2.6.16"
+val akkaHttpVersion = "10.2.6"
 val circeVersion = "0.14.1"
 
 val circeDependencies = Seq(
@@ -50,11 +49,12 @@ lazy val `webapp-akka` = project.in(file("webapp_akka"))
   .settings(
     commonSettings("webapp-akka"),
     run / fork := true,
+    run / connectInput := true,
     libraryDependencies ++= circeDependencies ++ Seq(
-      "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
-      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-      "com.typesafe.akka" %% "akka-slf4j" % AkkaVersion,
+      "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
+      "com.typesafe.akka" %% "akka-stream" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http" % akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     ).map(_.cross(CrossVersion.for3Use2_13)) ++
       sangriaDependencies ++ Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.6" % Runtime,
