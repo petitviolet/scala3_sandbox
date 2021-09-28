@@ -193,4 +193,22 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
       println("world!")
     }
   }
+
+  {
+    case class Type(name: String, field: Seq[Type])
+    given TypeA: Type = Type("A", TypeB :: Nil)
+    given TypeB: Type = Type("B", TypeA :: Nil)
+
+    // given values are evaluated when they are required
+    // println(s"TypeA: ${TypeA}") // cause StackOverflowError
+
+    given TypeC: Type = {
+      // only once
+      println(s"TypeC is initiated")
+      Type("C", Nil)
+    }
+    println(s"TypeC 1: ${TypeC}")
+    println(s"TypeC 2: ${TypeC}")
+    println(s"TypeC 3: ${TypeC}")
+  }
 }
