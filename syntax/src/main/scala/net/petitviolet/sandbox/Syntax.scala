@@ -14,26 +14,21 @@ object Syntax:
   object AnotherNumber:
     def apply(i: Int): AnotherNumber = i
 
-  /**
-   * Added @targetName annotation to suppress the following error message
-   * [error] 23 |    def value: Int = n
-   * [error]    |        ^
-   * [error]    |Double definition:
-   * [error]    |def value(n: net.petitviolet.sandbox.Syntax.AnotherNumber): Int in object Syntax at line 17 and
-   * [error]    |def value(n: net.petitviolet.sandbox.Syntax.Number): Int in object Syntax at line 23
-   * [error]    |have the same type after erasure.
-   * [error]    |
-   * [error]    |Consider adding a @targetName annotation to one of the conflicting definitions
-   * [error]    |for disambiguation.
-   */
-  extension (n: AnotherNumber)
-    @targetName("n_AnotherNumber") def value: Int = n
+  /** Added @targetName annotation to suppress the following error message
+    * [error] 23 | def value: Int = n [error] | ^ [error] |Double definition:
+    * [error] |def value(n: net.petitviolet.sandbox.Syntax.AnotherNumber): Int
+    * in object Syntax at line 17 and [error] |def value(n:
+    * net.petitviolet.sandbox.Syntax.Number): Int in object Syntax at line 23
+    * [error] |have the same type after erasure. [error] | [error] |Consider
+    * adding a @targetName annotation to one of the conflicting definitions
+    * [error] |for disambiguation.
+    */
+  extension (n: AnotherNumber) @targetName("n_AnotherNumber") def value: Int = n
 
   opaque type Number = Int
   object Number:
     def apply(i: Int): Number = i
-  extension (n: Number)
-    @targetName("n_Number") def value: Int = n
+  extension (n: Number) @targetName("n_Number") def value: Int = n
 
   // inject a method to all of A instances only if A has an Adder[A] instance
   extension [A](a: A)
@@ -97,7 +92,6 @@ object Syntax:
       def input: Input
     }
     object Value {
-      // scalafmt `raises Search state exploded on` error...
       type Type = [I] =>> [O] =>> Value { type Input = I; type Output = O }
       def of[I, O](i: I): Type[I][O] = new Value {
         type Input = I
@@ -179,8 +173,10 @@ val currencyAdder: Syntax.Adder[Currency] = new Syntax.Adder[Currency]:
     val intValue: Value.Type[Int][String] = Value.of[Int, String](100)
     val intProcessor = new Processor[Value.Type[Int][String]] {
       override val value = intValue
-      override def process(input: value.Input): value.Output = s"processed: ${input}"
-      override def processValue(v: Value.Type[Int][String]): v.Output = s"processedValue: ${v.input}"
+      override def process(input: value.Input): value.Output =
+        s"processed: ${input}"
+      override def processValue(v: Value.Type[Int][String]): v.Output =
+        s"processedValue: ${v.input}"
     }
     println(intProcessor.process(intValue.input))
     println(intProcessor.processValue(intValue))
