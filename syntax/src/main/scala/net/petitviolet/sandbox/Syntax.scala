@@ -45,6 +45,12 @@ object Syntax:
   // to instantiate an opaque type it seems to need constructor
   object UserId:
     def apply(id: Long): UserId = id
+    extension (a: UserId) def value: Long = a
+
+  opaque type UserId2 = Long
+  object UserId2:
+    // defining extension method with the same signature within companion object
+    extension (a: UserId2) def value: Long = a
 
   opaque type UserEmail = String
   object UserEmail:
