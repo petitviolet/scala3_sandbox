@@ -63,14 +63,12 @@ opaque type DatabaseId = String
 object DatabaseId:
   def apply(id: String): DatabaseId = id
   def generate = apply(UUID.randomUUID().toString)
-
-extension (a: DatabaseId) @targetName("a_DatabaseId") def value: String = a
+  extension (a: DatabaseId) def value: String = a
 
 opaque type DatabaseName = String
 object DatabaseName:
   def apply(name: String): DatabaseName = name
-
-extension (a: DatabaseName) @targetName("a_DatabaseName") def value: String = a
+  extension (a: DatabaseName) def value: String = a
 
 object Database:
   def create(name: DatabaseName): Database =
@@ -90,14 +88,12 @@ opaque type TableId = String
 object TableId:
   def apply(id: String): TableId = id
   def generate = apply(UUID.randomUUID().toString)
-
-extension (a: TableId) @targetName("a_TableId") def value: String = a
+  extension (a: TableId) def value: String = a
 
 opaque type TableName = String
 object TableName:
   def apply(name: String): TableName = name
-
-extension (a: TableName) @targetName("a_TableName") def value: String = a
+  extension (a: TableName) def value: String = a
 
 case class Column(
   id: ColumnId,
@@ -117,12 +113,12 @@ opaque type ColumnId = String
 object ColumnId:
   def apply(id: String): ColumnId = id
   def generate = apply(UUID.randomUUID().toString)
-extension (a: ColumnId) @targetName("a_ColumnId") def value: String = a
+  extension (a: ColumnId) def value: String = a
 
 opaque type ColumnName = String
 object ColumnName:
   def apply(name: String): ColumnName = name
-extension (a: ColumnName) @targetName("a_ColumnName") def value: String = a
+  extension (a: ColumnName) def value: String = a
 
 enum ColumnType {
   case Int, Long, Varchar
