@@ -105,7 +105,7 @@ trait GraphQLRouting { self: CirceSupport with LoggerProvider =>
             InvalidRequest("query must be given"),
           )
       }
-      }
+    }
   }
 
   def graphiQLGet: Route = {
