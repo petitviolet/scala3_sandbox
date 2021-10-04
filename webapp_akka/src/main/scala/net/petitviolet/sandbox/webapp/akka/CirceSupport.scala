@@ -8,15 +8,15 @@ import akka.http.scaladsl.unmarshalling.{
   Unmarshaller,
 }
 import akka.util.ByteString
-import io.circe.*
+import io.circe._
 
 import scala.concurrent.Future
 import scala.deriving.Mirror
 
 // Strongly recommend to use https://github.com/hseeberger/akka-http-json
 trait CirceSupport {
-  given decodeNullable[A: Decoder]: Decoder[Option[A]] = Decoder.decodeOption[A]
-  given decodeJson: Decoder[Json] = Decoder.decodeJson
+  given [A: Decoder]: Decoder[Option[A]] = Decoder.decodeOption[A]
+  given Decoder[Json] = Decoder.decodeJson
 
   // raise `Compiler bug: `constValue` was not evaluated by the compiler`
   // given decoder[T]: (Mirror.Of[T] ?=> Decoder[T]) = io.circe.generic.semiauto.deriveDecoder
@@ -30,8 +30,7 @@ trait CirceSupport {
         .fold(throw _, identity)
     }
 
-  inline
-  given [T](using inline A: Mirror.Of[T]): Decoder[T] =
+  inline given [T](using inline A: Mirror.Of[T]): Decoder[T] =
     io.circe.generic.semiauto.deriveDecoder(using A)
 
   type JsonMarshaller = [T] =>> (Encoder[T] ?=> ToEntityMarshaller[T])
@@ -51,7 +50,6 @@ trait CirceSupport {
     }
   }
 
-  inline
-  given [T](using inline A: Mirror.Of[T]): Encoder[T] =
+  inline given [T](using inline A: Mirror.Of[T]): Encoder[T] =
     io.circe.generic.semiauto.deriveEncoder(using A)
 }
