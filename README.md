@@ -1,8 +1,9 @@
-## sbt project compiled with Scala 3
+# Scala 3 sandbox
 
-### Usage
+## Projects
 
-This is a normal sbt project. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
+see [build.sbt](https://github.com/petitviolet/scala3_sandbox/blob/main/build.sbt)
 
-For more information on the sbt-dotty plugin, see the
-[scala3-example-project](https://github.com/scala/scala3-example-project/blob/main/README.md).
+- `syntax` to see how Scala 3 syntax looks like
+- `webapp-akka` to launch a GraphQL API on Sangria on Akka-HTTP
+    - `sbt webapp-akka/run` or `sbt 'project webapp-akka' '~reStart'`
