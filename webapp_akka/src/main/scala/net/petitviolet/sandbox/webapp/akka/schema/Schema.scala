@@ -1,7 +1,7 @@
 package net.petitviolet.sandbox.webapp.akka.schema
 import net.petitviolet.sandbox.webapp.akka.model
-import net.petitviolet.sandbox.webapp.akka.model.*
-import sangria.schema.{Context => SangriaContext, *}
+import net.petitviolet.sandbox.webapp.akka.model.{DatabaseId, *}
+import sangria.schema.{Context as SangriaContext, *}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -49,18 +49,32 @@ object Schema {
     tableStore: TableStore,
     columnStore: ColumnStore,
   ):
-    def schema: ObjectType[Context, Unit] = ObjectType(
-      "Query",
-      fields[Context, Unit](
-        Field(
-          "databases",
-          ListType(DatabaseType),
-          resolve = { ctx =>
-            databaseStore.findAll()(using ctx.ec)
-          },
+    object Args {
+      val DatabaseId = Argument("databaseId", StringType)
+    }
+    def schema: ObjectType[Context, Unit] = {
+      ObjectType(
+        "Query",
+        fields[Context, Unit](
+          Field(
+            "databases",
+            ListType(DatabaseType),
+            resolve = { ctx =>
+              databaseStore.findAll()(using ctx.ec)
+            },
+          ),
+          Field(
+            "tables",
+            ListType(TableType),
+            arguments = Args.DatabaseId :: Nil,
+            resolve = { ctx =>
+              val databaseId = DatabaseId(ctx.arg(Args.DatabaseId))
+              tableStore.findAllByDatabaseId(databaseId)(using ctx.ec)
+            },
+          ),
         ),
-      ),
-    )
+      )
+    }
     // cannot use macro in Scala3
     // val DatabaseType = deriveObjectType[Context, Database]()
     // given seems to be equal to `implicit lazy val`
