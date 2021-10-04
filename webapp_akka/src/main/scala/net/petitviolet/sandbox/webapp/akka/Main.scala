@@ -71,17 +71,15 @@ trait Service(graphQLService: GraphQLService)
 
   lazy val routes: Route = {
     logRequestResult("webapp-akka", Logging.WarningLevel) {
-      path("graphql") {
-        graphiQLGet
-          ~ graphqlPost(graphQLService)
-      } ~
-        pathPrefix("echo") {
-          (get & path(Segment)) { path =>
-            complete {
-              path
-            }
+      graphqlRouting(graphQLService)
+      ~
+      pathPrefix("echo") {
+        (get & path(Segment)) { path =>
+          complete {
+            path
           }
-        } ~
+        }
+      } ~
         pathPrefix("ping") {
           (post & entity(as[Message])) { message =>
             complete {
