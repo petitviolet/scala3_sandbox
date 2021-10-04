@@ -66,7 +66,14 @@ trait GraphQLRouting { self: CirceSupport with LoggerProvider =>
   given ExecutionContext =
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(1))
 
-  def graphqlPost(graphQLService: GraphQLService): Route = {
+  def graphqlRouting(graphQLService: GraphQLService): Route = {
+    (path("graphql") & guard) {
+      graphiQLGet
+        ~ graphqlPost(graphQLService)
+    }
+  }
+
+  private def graphqlPost(graphQLService: GraphQLService): Route = {
     (post & entity(as[GraphQLHttpRequest])) { body =>
       logger.info(s"body: ${body.toString}")
       val GraphQLHttpRequest(queryOpt, varOpt, operationNameOpt) = body
@@ -108,7 +115,7 @@ trait GraphQLRouting { self: CirceSupport with LoggerProvider =>
     }
   }
 
-  def graphiQLGet: Route = {
+  private def graphiQLGet: Route = {
     inline def acceptHtml = headerValuePF {
       case Accept(mediaRanges) if mediaRanges.exists { mediaRange =>
             mediaRange.isWildcard || mediaRange.matches(MediaTypes.`text/html`)
